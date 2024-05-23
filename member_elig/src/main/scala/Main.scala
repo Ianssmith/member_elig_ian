@@ -30,11 +30,20 @@ object Main {
     //Aggregate for total months
     val totalMemberMonthsDF = joinedDF
       .groupBy("member_id", "first_name", "middle_name", "last_name")
-      .agg(sum("eligibility_member_month").alias("total_member_months"))
-    //totalMemberMonthsDF.show(3)
+      .agg(count("eligibility_member_month").alias("total_member_months"))
+    ////totalMemberMonthsDF.show(3)
 
     //Write result to json file
     totalMemberMonthsDF.write.json("out/total_member_months.json")
 
+    //Grouping by member and year
+    val memberMonthsPerYearDF = joinedDF
+      .withColumn("year", year(col("eligiblity_effective_date")))
+      .groupBy("member_id", "year")
+      .agg(count("eligibility_member_month").alias("total_member_months"))
+    //memberMonthsPerYearDF.show(3)
+
+    //Write result to json file
+    memberMonthsPerYearDF.write.json("out/member_months_per_year.json")
   }
 }
