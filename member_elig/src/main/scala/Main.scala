@@ -15,7 +15,6 @@ object Main {
       .option("header", "true")
       .option("inferSchema", "true")
       .load("./src/data/member_eligibility.xlsx")
-    memberEligibilityDF.show(3)
 
     // Read the member_months.xlsx file
     val memberMonthsDF = spark.read
@@ -23,6 +22,19 @@ object Main {
       .option("header", "true")
       .option("inferSchema", "true")
       .load("./src/data/member_months.xlsx")
-    memberMonthsDF.show(3)
+
+    //Join on member_id
+    val joinedDF =  memberEligibilityDF.join(memberMonthsDF, "member_id")
+    //joinedDF.show(3)
+
+    //Aggregate for total months
+    val totalMemberMonthsDF = joinedDF
+      .groupBy("member_id", "first_name", "middle_name", "last_name")
+      .agg(sum("eligibility_member_month").alias("total_member_months"))
+    //totalMemberMonthsDF.show(3)
+
+    //Write result to json file
+    totalMemberMonthsDF.write.json("out/total_member_months.json")
+
   }
 }
